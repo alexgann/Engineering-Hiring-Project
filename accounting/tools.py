@@ -15,6 +15,7 @@ If you have any questions, please contact Amanda at:
 #######################################################
 """
 
+
 class PolicyAccounting(object):
     """
      Each policy has its own instance of accounting.
@@ -25,6 +26,10 @@ class PolicyAccounting(object):
         if not self.policy.invoices:
             self.make_invoices()
 
+    """
+     Determine required balance to return given a cancellation
+     (does not account for unearned premium)
+    """
     def return_account_balance(self, date_cursor=None):
         if not date_cursor:
             date_cursor = datetime.now().date()
@@ -45,6 +50,9 @@ class PolicyAccounting(object):
 
         return due_now
 
+    """
+     Record a payment made on the policy
+    """
     def make_payment(self, contact_id=None, date_cursor=None, amount=0):
         if not date_cursor:
             date_cursor = datetime.now().date()
@@ -64,6 +72,9 @@ class PolicyAccounting(object):
 
         return payment
 
+    """
+     Check if non-pay notice should be sent
+    """
     def evaluate_cancellation_pending_due_to_non_pay(self, date_cursor=None):
         """
          If this function returns true, an invoice
@@ -73,6 +84,9 @@ class PolicyAccounting(object):
         """
         pass
 
+    """
+     Check if policy should be cancelled due to non-pay
+    """
     def evaluate_cancel(self, date_cursor=None):
         if not date_cursor:
             date_cursor = datetime.now().date()
@@ -91,7 +105,9 @@ class PolicyAccounting(object):
         else:
             print "THIS POLICY SHOULD NOT CANCEL"
 
-
+    """
+     Create schedule of invoices based on payment plan
+    """
     def make_invoices(self):
         for invoice in self.policy.invoices:
             invoice.delete()
