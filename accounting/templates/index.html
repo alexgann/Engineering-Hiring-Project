@@ -1,15 +1,39 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Some sort of title?</title>
-  <meta name="description" content="What is this?">
-  <meta name="author" content="Who?">
-  <!--[if lt IE 9]>
-<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-<![endif]-->
-</head>
-<body>
-    <p>Your server is working.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Find a Policy{% endblock %}
+{% block content %}
+<div class="row">
+<div class="span12">
+    <h1>Policy Accounting</h1>
+    <form id="findform" class="form-inline" role="form">
+      <div class="form-group">
+        <input type="text" class="form-control" id="policy_number" placeholder="Policy Number">
+      </div>
+      <div class="form-group">
+        <div class="input-group">
+          <div class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></div>
+          <input class="form-control" type="text" id="date" placeholder="As of Date">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-default">Find</button>
+    </form>
+</div></div>
+<div class="row">
+    <p></p>
+    <div class="span12 well" id="result">
+        
+    </div>
+</div>
+<script>
+    $(function() {
+        $('#policy_number').autocomplete({source: {{ policy_numbers|tojson|safe }}})
+        $('#date').datepicker();
+        $('#findform').submit(function(e) {
+            e.preventDefault();
+            $.get('{{ url_for('view_policy') }}', {'policy_number': $('#policy_number').val(), 
+                'date': $('#date').datepicker('getDate').toISOString().slice(0,10).replace(/-/g,"")}, function(response) {
+                    $('#result').html(response);
+                });
+        })
+    });
+</script>
+{% endblock %}

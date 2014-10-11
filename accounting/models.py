@@ -28,6 +28,8 @@ class Policy(db.Model):
         self.annual_premium = annual_premium
 
     invoices = db.relation('Invoice', primaryjoin="Invoice.policy_id==Policy.id")
+    payments = db.relation('Payment', primaryjoin="Payment.policy_id==Policy.id")
+    insured = db.relation('Contact', primaryjoin="Contact.id==Policy.named_insured")
 
 
 class Contact(db.Model):
@@ -78,6 +80,7 @@ class Payment(db.Model):
     contact_id = db.Column(u'contact_id', db.INTEGER(), db.ForeignKey('contacts.id'), nullable=False)
     amount_paid = db.Column(u'amount_paid', db.INTEGER(), nullable=False)
     transaction_date = db.Column(u'transaction_date', db.DATE(), nullable=False)
+    contact = db.relation('Contact', primaryjoin="Payment.contact_id==Contact.id")
 
     def __init__(self, policy_id, contact_id, amount_paid, transaction_date):
         self.policy_id = policy_id

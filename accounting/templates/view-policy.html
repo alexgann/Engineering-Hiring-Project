@@ -1,0 +1,16 @@
+<h2>{{ policy.policy_number }} for {{ policy.insured.name }}</h2>
+<h2>Initial Premium: {{ "${:,d}".format(policy.annual_premium) }}</h2>
+<h2>Balance due <small>(as of {{ date.strftime('%m/%d/%Y') }})</small>: {{ "${:,d}".format(pa.return_account_balance(date)) }}</h2>
+<h3>Payments Received:</h3>
+<ul>
+    {% for payment in policy.payments if payment.transaction_date<=date%}
+        <li>${{ payment.amount_paid }} on {{ payment.transaction_date.strftime('%m/%d/%Y') }} by {{ payment.contact.name }}</li>
+    {% else %}<li>None to date</li>
+    {% endfor %}
+</ul>
+<h3>Billings:</h3>
+<ul>
+    {% for invoice in policy.invoices %}
+        <li>${{ invoice.amount_due }} payment due, sent {{ invoice.bill_date.strftime('%m/%d/%Y') }} due {{ invoice.due_date.strftime('%m/%d/%Y') }}</li>
+    {% endfor %}
+</ul>
