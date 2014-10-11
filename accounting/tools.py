@@ -147,44 +147,23 @@ class PolicyAccounting(object):
                                 self.policy.annual_premium)
         invoices.append(first_invoice)
 
-        if self.policy.billing_schedule == "Annual":
+        schedule = self.policy.billing_schedule
+        if schedule == "Annual":
             pass
-        elif self.policy.billing_schedule == "Two-Pay":
-            first_invoice.amount_due = first_invoice.amount_due / billing_schedules.get(self.policy.billing_schedule)
-            for i in range(1, billing_schedules.get(self.policy.billing_schedule)):
-                months_after_eff_date = i*6
-                bill_date = self.policy.effective_date + relativedelta(months=months_after_eff_date)
-                invoice = Invoice(self.policy.id,
-                                  bill_date,
-                                  bill_date + relativedelta(months=1),
-                                  bill_date + relativedelta(months=1, days=14),
-                                  self.policy.annual_premium / billing_schedules.get(self.policy.billing_schedule))
-                invoices.append(invoice)
-        elif self.policy.billing_schedule == "Quarterly":
-            first_invoice.amount_due = first_invoice.amount_due / billing_schedules.get(self.policy.billing_schedule)
-            for i in range(1, billing_schedules.get(self.policy.billing_schedule)):
-                months_after_eff_date = i*3
-                bill_date = self.policy.effective_date + relativedelta(months=months_after_eff_date)
-                invoice = Invoice(self.policy.id,
-                                  bill_date,
-                                  bill_date + relativedelta(months=1),
-                                  bill_date + relativedelta(months=1, days=14),
-                                  self.policy.annual_premium / billing_schedules.get(self.policy.billing_schedule))
-                invoices.append(invoice)
-        elif self.policy.billing_schedule == "Monthly":
-            num_payments = billing_schedules.get(self.policy.billing_schedule)
+        elif schedule in billing_schedules:
+            num_payments = billing_schedules.get(schedule)
             # desire full-dollar bill amounts, but not always divisible, so add remainder to first installment
             first_invoice.amount_due = first_invoice.amount_due / num_payments + first_invoice.amount_due % num_payments
 
-            for i in range(1, billing_schedules.get(self.policy.billing_schedule)):
-                months_after_eff_date = i
+            for i in range(1, billing_schedules.get(schedule)):
+                months_after_eff_date = i*12/num_payments
                 bill_date = self.policy.effective_date + relativedelta(months=months_after_eff_date)
 
                 invoice = Invoice(self.policy.id,
                                   bill_date,
                                   bill_date + relativedelta(months=1),
                                   bill_date + relativedelta(months=1, days=14),
-                                  self.policy.annual_premium / billing_schedules.get(self.policy.billing_schedule))
+                                  self.policy.annual_premium / billing_schedules.get(schedule))
                 invoices.append(invoice)
         else:
             print "You have chosen a bad billing schedule."
