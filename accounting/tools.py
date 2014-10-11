@@ -118,15 +118,15 @@ class PolicyAccounting(object):
     """
     def make_invoices(self):
         for invoice in self.policy.invoices:
-            invoice.delete()
+            invoice.deleted = True
 
         billing_schedules = {'Annual': None, 'Two-Pay': 2, 'Quarterly': 4, 'Monthly': 12}
 
         invoices = []
         first_invoice = Invoice(self.policy.id,
-                                self.policy.effective_date, #bill_date
-                                self.policy.effective_date + relativedelta(months=1), #due
-                                self.policy.effective_date + relativedelta(months=1, days=14), #cancel
+                                self.policy.effective_date,  # bill_date
+                                self.policy.effective_date + relativedelta(months=1),  # due
+                                self.policy.effective_date + relativedelta(months=1, days=14),  # cancel
                                 self.policy.annual_premium)
         invoices.append(first_invoice)
 
@@ -155,10 +155,14 @@ class PolicyAccounting(object):
                                   self.policy.annual_premium / billing_schedules.get(self.policy.billing_schedule))
                 invoices.append(invoice)
         elif self.policy.billing_schedule == "Monthly":
-            first_invoice.amount_due = first_invoice.amount_due / billing_schedules.get(self.policy.billing_schedule)
+            num_payments = billing_schedules.get(self.policy.billing_schedule)
+            # desire full-dollar bill amounts, but not always divisible, so add remainder to first installment
+            first_invoice.amount_due = first_invoice.amount_due / num_payments + first_invoice.amount_due % num_payments
+
             for i in range(1, billing_schedules.get(self.policy.billing_schedule)):
                 months_after_eff_date = i
                 bill_date = self.policy.effective_date + relativedelta(months=months_after_eff_date)
+
                 invoice = Invoice(self.policy.id,
                                   bill_date,
                                   bill_date + relativedelta(months=1),
@@ -173,7 +177,7 @@ class PolicyAccounting(object):
         db.session.commit()
 
 ################################
-# The functions below are for the db and 
+# The functions below are for the db and
 # shouldn't need to be edited.
 ################################
 def build_or_refresh_db():
