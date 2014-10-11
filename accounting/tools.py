@@ -108,10 +108,27 @@ class PolicyAccounting(object):
             if not self.return_account_balance(invoice.cancel_date):
                 continue
             else:
-                print "THIS POLICY SHOULD HAVE CANCELED"
+                self.cancel_policy(code='Non-Pay', description='Cancelled due to non-payment')
                 break
         else:
             print "THIS POLICY SHOULD NOT CANCEL"
+
+    """
+     Puts a policy into Canceled status, setting date and descriptions
+    """
+    def cancel_policy(self, code=None, description=None):
+        if not code:
+            print "PLEASE PROVIDE A CANCEL CODE (Non-Pay, Underwriting, or Insured Request)"
+            return None
+
+        self.policy.status = 'Canceled'
+        self.policy.cancel_code = code
+        self.policy.cancel_description = description
+        self.policy.cancel_date = datetime.now().date()
+
+        db.session.add(self.policy)
+        db.session.commit()
+        print "POLICY {} CANCELLED".format(self.policy.id)
 
     """
      Create schedule of invoices based on payment plan
