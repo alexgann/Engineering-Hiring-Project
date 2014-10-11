@@ -27,8 +27,7 @@ class PolicyAccounting(object):
             self.make_invoices()
 
     """
-     Determine required balance to return given a cancellation
-     (does not account for unearned premium)
+     Returns the balance due on a policy as of a given date
     """
     def return_account_balance(self, date_cursor=None):
         if not date_cursor:
@@ -76,13 +75,22 @@ class PolicyAccounting(object):
      Check if non-pay notice should be sent
     """
     def evaluate_cancellation_pending_due_to_non_pay(self, date_cursor=None):
-        """
-         If this function returns true, an invoice
-         on a policy has passed the due date without
-         being paid in full. However, it has not necessarily
-         made it to the cancel_date yet.
-        """
-        pass
+        if not date_cursor:
+            date_cursor = datetime.now().date()
+
+        invoices = Invoice.query.filter_by(policy_id=self.policy.id)\
+                                .filter(Invoice.due_date <= date_cursor)\
+                                .order_by(Invoice.bill_date)\
+                                .all()
+
+        for invoice in invoices:
+            if not self.return_account_balance(invoice.due_date):
+                continue
+            else:
+                print "THIS POLICY SHOULD HAVE A NON-PAY NOTICE"
+                break
+        else:
+            print "THIS POLICY SHOULD NOT BE IN NON-PAY STATUS"
 
     """
      Check if policy should be cancelled due to non-pay
@@ -112,7 +120,7 @@ class PolicyAccounting(object):
         for invoice in self.policy.invoices:
             invoice.delete()
 
-        billing_schedules = {'Annual': None, 'Semi-Annual': 3, 'Quarterly': 4, 'Monthly': 12}
+        billing_schedules = {'Annual': None, 'Two-Pay': 2, 'Quarterly': 4, 'Monthly': 12}
 
         invoices = []
         first_invoice = Invoice(self.policy.id,
